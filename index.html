@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>TV Show Watchlist</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <style>
+      .row {
+        padding: 10px;
+      }
+
+      img.headshot {
+        height: 80px;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+          <h1>Watchlist</h1>
+      </div>
+      <div class="row">
+          <a href="#" onclick="showWatchlist()" role="button" class="btn btn-outline-primary">Show My Watchlist</a>
+      </div>
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="input-group">
+          <input id="searchBox" type="text" class="form-control" placeholder="Search for a show..." aria-label="Search for a show..." autofocus>
+          <span class="input-group-btn">
+            <button id="searchButton" class="btn btn-secondary" type="button">Go!</button>
+          </span>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-6">
+          <table class="table table-hover">
+          <tbody id="resultsBox">
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+    <div id="detailsModalContainer"></div>
+    <div id="watchlistModalContainer">
+      <div id="watchlistModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">My Watchlist</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <table class="table table-hover table-sm">
+                  <thead>
+                    <tr>
+                      <th scope="col">Name</th>
+                      <th scope="col">Runtime</th>
+                      <th scope="col">Premiered</th>
+                      <th scope="col">Genres</th>
+                      <th scope="col">Rating</th>
+                      <th scope="col">Watched?</th>
+                      <th scope="col">Watchlist?</th>
+                    </tr>
+                  </thead>
+                  <tbody id="watchlistModalContent">                          
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Results Template -->
+    <script id="resultsTmpl" type="text/x-jsrender">
+      <table class="table table-hover">
+        <tbody>
+            <tr>
+              <td>{{:show.name}}</td>
+              <td><a href="#" onclick="showDetails({{:show.id}})" role="button" class="btn btn-outline-info">Details</a></td>
+              <td><a href="#" onclick="addWatchlist({{:show.id}})" role="button" class="btn btn-outline-primary"><b>+</b>  Watch List</a></td>
+            </tr>
+        </tbody>
+      </table>
+    </script>
+
+    <!-- Show Details Modal Template -->
+    <script id="detailsModalTmpl" type="text/x-jsrender">
+      <div id="detailsModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{:name}}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col ml-auto">
+                  <h6>Cast</h6>
+                  <ul class="list-group">
+                    {{for _embedded.cast}}
+                      <li class="list-group-item"><img class="headshot" src="{{:person.image.medium}}">{{:person.name}}</li>
+                    {{/for}}
+                  </ul>                  
+                </div>
+                <div class="col ml-auto">
+                  <h6>Episodes</h6>
+                  <ul class="list-group">
+                    {{for _embedded.episodes}}
+                      <li class="list-group-item">
+                        <b>Season {{:season}}: Episode {{:number}}</b><br>
+                          {{:name}}
+                      </li>
+                    {{/for}}
+                  </ul>  
+                </div>
+              </div>              
+            </div>
+            <div class="modal-footer">
+              <a href="#" onclick="addWatchlist({{:id}})" role="button" class="btn btn-outline-primary"><b>+</b>  Watch List</a>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <!-- Watchlist Modal Template -->
+    <script id="watchlistModalTmpl" type="text/x-jsrender">
+      <tr>
+        <td>{{:name}}</td>
+        <td>{{:runtime}} mins</td>
+        <td>{{:premiered}}</td>
+        <td>
+          <ul class="list-unstyled">
+          {{for genres itemVar="~genre"}} 
+            <li>{{:~genre}}</li>
+          {{/for}}
+          </ul>
+        </td>
+        <td>{{:rating.average}}</td>
+        <td>
+          <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" {{if watched}}checked{{/if}} autocomplete="off" onclick="updateWatched({{:id}},this);">
+            Watched
+          </label>
+        </td>
+        <td>
+          <a href="#" onclick="removeWatchList({{:id}})" role="button" class="btn btn-outline-danger">Remove</a>
+        </td>
+      </tr>                             
+    </script>
+
+    <!-- includes -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/0.9.90/jsrender.min.js"></script>
+    <script src="watchlist.js"></script>
+  </body>
+</html>         
